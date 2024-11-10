@@ -1,0 +1,16 @@
+1.	break
+2.	else
+3.	if
+4.	endif
+5.	int
+6.	while
+7.	return
+8.	void
+9.	count
+10.	result
+11.	f
+12.	a
+13.	main
+14.	i
+15.	loop
+16.	output
