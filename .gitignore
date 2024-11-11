@@ -365,3 +365,9 @@ poetry.toml
 pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python,pycharm,jetbrains
+
+# Files used for testing
+input.txt
+lexical_errors.txt
+symbol_table.txt
+tokens.txt
