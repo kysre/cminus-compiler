@@ -23,18 +23,25 @@ class TokenType:
     EQUAL = 'EQUAL'
 
 
+class Token:
+    def __init__(self, line_number, token_type, value):
+        self.line_number = line_number
+        self.token_type = token_type
+        self.value = value
+
+
 def get_token_type(char):
-    if char in Config.WHITESPACES:  # WHITESPACE
+    if char in Config.WHITESPACES:
         return TokenType.WHITESPACE
-    elif char in Config.SYMBOLS:  # SYMBOL
+    elif char in Config.SYMBOLS:
         return TokenType.SYMBOL
-    elif char.isdigit():  # NUM
+    elif char.isdigit():
         return TokenType.NUM
-    elif char.isalnum():  # ID / KEYWORD
+    elif char.isalnum():
         return TokenType.ID_OR_KEYWORD
-    elif char == '/':  # COMMENT (potentially)
+    elif char == '/':
         return TokenType.COMMENT
-    else:  # Invalid input
+    else:
         return TokenType.INVALID
 
 
@@ -43,28 +50,11 @@ def init_symbol_table():
     symbol_table['ids'] = []
 
 
-def get_type(token):
-    if token.isdigit():  # NUM
-        return TokenType.NUM
-    elif token in symbol_table['keywords']:
-        return token
-    elif token[0] in Config.KEYWORDS:
-        return token
-    return TokenType.ID
-
-
-def isIdOrKeyword(name):
+def is_id_or_keyword(name):
     for name1 in symbol_table["keywords"]:
         if name == name1:
             return TokenType.KEYWORD
     else:
-        # int
-        # flag = 0
-        # for name1 in symbol_table['ids']:
-        #     if (name1 == name):
-        #         flag = 1
-        # if (flag == 0):
-        # symbol_table['ids'].append(name)
         return TokenType.ID
 
 
@@ -75,23 +65,24 @@ def get_short_comment(comment):
 def save_errors():
     with open('lexical_errors.txt', 'w') as f:
         if lexical_errors:
-            for line_num, line_eror in lexical_errors.items():
+            for line_num, line_error in lexical_errors.items():
                 f.write(f'{line_num + 1}.' + "\t")
-                for i in range(len(line_eror)):
-                    if (i == len(line_eror) - 1):
-                        for char in range(len(line_eror[i])):
-                            f.write(f'{line_eror[i][char]}')
+                for i in range(len(line_error)):
+                    if i == len(line_error) - 1:
+                        for char in range(len(line_error[i])):
+                            f.write(f'{line_error[i][char]}')
                         f.write("\n")
                     else:
-                        f.write(f'{line_eror[i]} ')
+                        f.write(f'{line_error[i]} ')
         else:
             f.write('There is no lexical error.')
 
 
 def save_tokens():
     with open('tokens.txt', 'w') as f:
-        f.write('\n'.join([f'{line_no + 1}.\t' + ' '.join([f'({token[0]}, {token[1]})' for token in tokens])
-                           for line_no, tokens in tokens.items()]))
+        f.write('\n'.join(
+            [f'{line_no + 1}.\t' + ' '.join([f'({token.token_type}, {token.value})' for token in line_tkns])
+             for line_no, line_tkns in tokens.items()]))
 
 
 def save_symbol_table():
@@ -104,7 +95,6 @@ class Scanner:
     def __init__(self, input_path):
         self.input_path = input_path
         self.lines = None
-
         self.line_number = 0
         self.cursor = 0
 
@@ -120,8 +110,8 @@ class Scanner:
             return self.scan_next_token()
         elif token_type == TokenType.SYMBOL:
             flag = 0
-            if char == '*':
 
+            if char == '*':
                 if self.cursor < len(self.lines) - 1 \
                         and self.lines[self.cursor + 1] == '/':
                     self.cursor += 2
@@ -137,7 +127,7 @@ class Scanner:
             elif char == '=':
                 if self.cursor < len(self.lines) - 1 and self.lines[self.cursor + 1] == '=':
                     self.cursor += 2
-                    return self.line_number, TokenType.SYMBOL, '=='
+                    return Token(self.line_number, TokenType.SYMBOL, '==')
                 elif self.cursor < len(self.lines) - 1 and get_token_type(
                         self.lines[self.cursor + 1]) == TokenType.INVALID:
                     lexical_errors[self.line_number].append(
@@ -147,21 +137,23 @@ class Scanner:
 
             self.cursor += 1
             if flag == 0:
-                return self.line_number, TokenType.SYMBOL, char
-        elif token_type == TokenType.NUM:
-            number, error = self.isNumber()
-            if not error:
-                return self.line_number, TokenType.NUM, number
+                return Token(self.line_number, TokenType.SYMBOL, char)
 
+        elif token_type == TokenType.NUM:
+            number, error = self.is_number()
+            if not error:
+                return Token(self.line_number, TokenType.NUM, number)
             lexical_errors[self.line_number].append("(" + number + ", Invalid number)")
+
         elif token_type == TokenType.ID_OR_KEYWORD:
-            name, has_error = self.findIdOrKeyword()
-            if not has_error:
-                return self.line_number, isIdOrKeyword(name), name
+            name, error = self.find_id_or_keyword()
+            if not error:
+                return Token(self.line_number, is_id_or_keyword(name), name)
             lexical_errors[self.line_number].append("(" + name + ", Invalid input)")
 
         elif token_type == TokenType.COMMENT:
             self.find_comment()
+
         elif token_type == TokenType.INVALID:
             lexical_errors[self.line_number].append("(" + char + ", Invalid input)")
             self.cursor += 1
@@ -174,9 +166,8 @@ class Scanner:
             if self.eof_reached():
                 return '$'
             token = self.scan_next_token()
-
             if token:
-                return token[0] + 1, token[1:]
+                return token.line_number + 1, f'({token.token_type}, {token.value})'
 
     def init_input(self):
         with open(self.input_path, 'r') as f:
@@ -190,14 +181,14 @@ class Scanner:
                 break
             token = self.scan_next_token()
             if token:
-                tokens[token[0]].append(token[1:])
-                if token[1] == TokenType.ID and token[2] not in symbol_table['ids']:
-                    symbol_table['ids'].append(token[2])
+                tokens[token.line_number].append(token)
+                if token.token_type == TokenType.ID and token.value not in symbol_table['ids']:
+                    symbol_table['ids'].append(token.value)
 
     def get_current_char(self):
         return self.lines[self.cursor]
 
-    def isNumber(self):
+    def is_number(self):
         num = self.get_current_char()
         while self.cursor + 1 < len(self.lines):
             self.cursor += 1
@@ -214,7 +205,7 @@ class Scanner:
         self.cursor += 1
         return num, False
 
-    def findIdOrKeyword(self):
+    def find_id_or_keyword(self):
         name = self.get_current_char()
         while self.cursor + 1 < len(self.lines):
             self.cursor += 1
@@ -240,7 +231,7 @@ class Scanner:
         if next_char not in ['*']:
             if get_token_type(next_char) == TokenType.WHITESPACE:
                 lexical_errors[self.line_number].append("(" + lexeme + ", Invalid input)")
-                if (next_char == "\n"):
+                if next_char == "\n":
                     self.cursor += 1
                 else:
                     self.cursor += 2
