@@ -371,3 +371,5 @@ input.txt
 lexical_errors.txt
 symbol_table.txt
 tokens.txt
+parse_tree.txt
+syntax_errors.txt

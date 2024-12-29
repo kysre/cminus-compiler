@@ -1,0 +1,87 @@
+1    Program⟶DeclarationList
+2    DeclarationList⟶Declaration DeclarationList
+3    DeclarationList⟶ε
+4    Declaration⟶DeclarationInitial DeclarationPrime
+5    DeclarationInitial⟶TypeSpecifier ID
+6    DeclarationPrime⟶FunDeclarationPrime
+7    DeclarationPrime⟶VarDeclarationPrime
+8    VarDeclarationPrime⟶;
+9    VarDeclarationPrime⟶[ NUM ] ;
+10    FunDeclarationPrime⟶( Params ) CompoundStmt
+11    TypeSpecifier⟶int
+12    TypeSpecifier⟶void
+13    Params⟶int ID ParamPrime ParamList
+14    Params⟶void
+15    ParamList⟶, Param ParamList
+16    ParamList⟶ε
+17    Param⟶DeclarationInitial ParamPrime
+18    ParamPrime⟶[ ]
+19    ParamPrime⟶ε
+20    CompoundStmt⟶{ DeclarationList StatementList }
+21    StatementList⟶Statement StatementList
+22    StatementList⟶ε
+23    Statement⟶ExpressionStmt
+24    Statement⟶CompoundStmt
+25    Statement⟶SelectionStmt
+26    Statement⟶IterationStmt
+27    Statement⟶ReturnStmt
+28    ExpressionStmt⟶Expression ;
+29    ExpressionStmt⟶break ;
+30    ExpressionStmt⟶;
+31    SelectionStmt⟶if ( Expression ) Statement ElseStmt
+32    ElseStmt⟶endif
+33    ElseStmt⟶else Statement endif
+34    IterationStmt⟶while ( Expression ) Statement
+35    ReturnStmt⟶return ReturnStmtPrime
+36    ReturnStmtPrime⟶;
+37    ReturnStmtPrime⟶Expression ;
+38    Expression⟶SimpleExpressionZegond
+39    Expression⟶ID B
+40    B⟶= Expression
+41    B⟶[ Expression ] H
+42    B⟶SimpleExpressionPrime
+43    H⟶= Expression
+44    H⟶G D C
+45    SimpleExpressionZegond⟶AdditiveExpressionZegond C
+46    SimpleExpressionPrime⟶AdditiveExpressionPrime C
+47    C⟶Relop AdditiveExpression
+48    C⟶ε
+49    Relop⟶<
+50    Relop⟶==
+51    AdditiveExpression⟶Term D
+52    AdditiveExpressionPrime⟶TermPrime D
+53    AdditiveExpressionZegond⟶TermZegond D
+54    D⟶Addop Term D
+55    D⟶ε
+56    Addop⟶+
+57    Addop⟶-
+58    Term⟶SignedFactor G
+59    TermPrime⟶SignedFactorPrime G
+60    TermZegond⟶SignedFactorZegond G
+61    G⟶Mulop SignedFactor G
+62    G⟶ε
+63    Mulop⟶*
+64    Mulop⟶/
+65    SignedFactor⟶+ Factor
+66    SignedFactor⟶- Factor
+67    SignedFactor⟶Factor
+68    SignedFactorPrime⟶FactorPrime
+69    SignedFactorZegond⟶+ Factor
+70    SignedFactorZegond⟶- Factor
+71    SignedFactorZegond⟶FactorZegond
+72    Factor⟶( Expression )
+73    Factor⟶ID VarCallPrime
+74    Factor⟶NUM
+75    VarCallPrime⟶( Args )
+76    VarCallPrime⟶VarPrime
+77    VarPrime⟶[ Expression ]
+78    VarPrime⟶ε
+79    FactorPrime⟶( Args )
+80    FactorPrime⟶ε
+81    FactorZegond⟶( Expression )
+82    FactorZegond⟶NUM
+83    Args⟶ArgList
+84    Args⟶ε
+85    ArgList⟶Expression ArgListPrime
+86    ArgListPrime⟶, Expression ArgListPrime
+87    ArgListPrime⟶ε
