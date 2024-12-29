@@ -1,6 +1,9 @@
+from collections import defaultdict
+
+from anytree import AnyNode, RenderTree
+
 import scanner
 from scanner import *
-from anytree import AnyNode, RenderTree
 
 EPSILON_SYMBOL = 'ε'
 END_SYMBOL = '$'
@@ -63,6 +66,7 @@ rules = 88 * [0]
 
 
 def save_syntax_errors():
+    del syntax_errors[1]
     with open('syntax_errors.txt', 'w') as f:
         if syntax_errors:
             f.write('\n'.join(['#' + f'{line_no}' + ' : syntax error, ' + f'{error}'
