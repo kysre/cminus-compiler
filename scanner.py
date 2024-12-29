@@ -45,6 +45,16 @@ def get_token_type(char):
         return TokenType.INVALID
 
 
+def get_type(token):
+    if token.isdigit():
+        return TokenType.NUM
+    elif token in symbol_table['keywords']:
+        return token
+    elif token in [';', ':', ',', '[', ']', '(', ')', '{', '}', '+', '-', '*', '/', '=', '<', '==']:
+        return token
+    return TokenType.ID
+
+
 def init_symbol_table():
     symbol_table['keywords'] = Config.KEYWORDS
     symbol_table['ids'] = []
@@ -167,7 +177,7 @@ class Scanner:
                 return '$'
             token = self.scan_next_token()
             if token:
-                return token.line_number + 1, f'({token.token_type}, {token.value})'
+                return token.line_number + 1, (token.token_type, token.value)
 
     def init_input(self):
         with open(self.input_path, 'r') as f:

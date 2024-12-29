@@ -2,6 +2,9 @@ import scanner
 from scanner import *
 from anytree import AnyNode, RenderTree
 
+EPSILON_SYMBOL = 'ε'
+END_SYMBOL = '$'
+
 root = AnyNode(id="Program")
 syntax_errors = defaultdict(list)
 parse_tree = list()
@@ -102,69 +105,69 @@ def is_terminal(a):
 
 
 def print_token(t):
-    if type(t) == str:
+    if type(t) is str:
         return t
     return '(' + t[0] + ', ' + t[1] + ')'
 
 
 class Parser:
-    def __init__(self):
+    def __init__(self, p_scanner):
         self.token = None
-        self.my_scanner = Scanner("input.txt")
-        self.my_scanner.init_input()
+        self.parse_scanner = p_scanner
+        self.parse_scanner.init_input()
         self.line_number = 0
         self.LA = str()
-        self.updat_LA(root)
-        self.DFA(root)
-        AnyNode(id='$', parent=root)
+
+    def parse_program(self):
+        self.update_la(root)
+        self.dfa(root)
+        AnyNode(id=END_SYMBOL, parent=root)
         finish()
 
-    def updat_LA(self, nt_node):
-
-        if self.LA == '$':
+    def update_la(self, nt_node):
+        if self.LA == END_SYMBOL:
             nt_node.parent = None
             syntax_errors[self.line_number].append('Unexpected EOF')
             finish()
-        self.token = self.my_scanner.get_next_token()
-        if type(self.token) == str:
-            '''LA = $'''
+        self.token = self.parse_scanner.get_next_token()
+        if type(self.token) is str:
+            # EOF
             self.LA = self.token
         else:
             self.line_number = self.token[0]
             self.token = self.token[1]
             self.LA = scanner.get_type(self.token[1])
 
-    def DFA(self, nt_node):
+    def dfa(self, nt_node):
         state = nt_node.id
         if self.LA in predict[state]:
             path = predict[state][self.LA]
-            if len(path) == 1 and path[0] == 'ε':
-                '''epsilon'''
+            if len(path) == 1 and path[0] == EPSILON_SYMBOL:
+                # epsilon
                 AnyNode(id="epsilon", parent=nt_node)
                 return
             else:
                 for next in path:
                     if not is_terminal(next):
                         next_nt_node = AnyNode(id=next, parent=nt_node)
-                        self.DFA(next_nt_node)
+                        self.dfa(next_nt_node)
                     elif self.LA == next:
                         AnyNode(id=print_token(self.token), parent=nt_node)
-                        if self.LA != '$':
-                            self.updat_LA(nt_node)
+                        if self.LA != END_SYMBOL:
+                            self.update_la(nt_node)
                     else:
-                        '''anytree bayad (type(next),next) ro chaap kone ?'''
                         syntax_errors[self.line_number].append('missing ' + next)
         else:
-            '''delete nt_node'''
+            # delete nt_node
             if self.LA in follow[state]:
-                '''sync'''
+                # sync
                 nt_node.parent = None
                 syntax_errors[self.line_number].append('missing ' + state)
                 return
             else:
-                '''empty '''
-                if self.LA != '$':
+                # empty
+                if self.LA != END_SYMBOL:
                     syntax_errors[self.line_number].append('illegal ' + self.LA)
-                self.updat_LA(nt_node)
-                self.DFA(nt_node)
+                self.update_la(nt_node)
+                self.dfa(nt_node)
                 return
